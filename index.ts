@@ -87,6 +87,6 @@ const initializeSocketServer = (app: Application, socketPort: number): Server =>
 };
 
 const app = express();
-const io = initializeSocketServer(app, 3001);
+const io = initializeSocketServer(app, Number(process.env.PORT));
 
-export default initializeSocketServer;
+export default io;
