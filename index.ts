@@ -30,13 +30,16 @@ const initializeSocketServer = (app: Application, socketPort: number): Server =>
             if (typeof userId === 'string') {
                 try {
                     const existingSocketId = await redis.get(userId);
-                    if (existingSocketId !== socket.id) {
+                    if (existingSocketId) {
+                        // User exists, update the socket ID
+                        await redis.set(userId, socket.id);
+                        console.log(`User ${userId} reconnected, updated socket ID to: ${socket.id}`);
+                        socket.emit('register_user', { message: 'User reconnected successfully', socketId: socket.id });
+                    } else {
+                        // New user registration
                         await redis.set(userId, socket.id);
                         console.log(`User ${userId} registered with socket ID: ${socket.id}`);
                         socket.emit('register_user', { message: 'User registered successfully', socketId: socket.id });
-                    } else {
-                        console.log(`User ${userId} is already registered with socket ID: ${existingSocketId}`);
-                        socket.emit('register_user', { error: 'User is already registered with this socket ID.' });
                     }
                 } catch (error) {
                     console.error(`Error handling register_user for ${userId}:`, error);
@@ -75,15 +78,17 @@ const initializeSocketServer = (app: Application, socketPort: number): Server =>
         socket.on('disconnect', async () => {
             console.log('User disconnected:', socket.id);
             try {
-                const userIds = await redis.keys('*'); 
+                const userIds = await redis.keys('*');
+                console.log('userIds', userIds);
                 for (const id of userIds) {
-                    const socketId = await redis.get(id);
-                    console.log('socketId', socketId, typeof socketId);
-                    if (typeof socketId === 'string' && socketId === socket.id) {
-                        console.log('Deleting key', id, socketId);
+                    console.log('id', id, typeof id);
+                    const storedValue = await redis.get(id); // Changed '2' to id
+                    console.log('storedValue', storedValue, typeof storedValue, socket.id, id);
+                    if (storedValue === socket.id) {
+                        console.log(`User with socket ID ${socket.id} unregistered on disconnect.`);
                         await redis.del(id);
-                        console.log(`User ${id} unregistered on disconnect.`);
-                        break;
+                    } else {
+                        console.warn(`Key ${id} does not hold a socket ID, skipping deletion.`);
                     }
                 }
             } catch (error) {
