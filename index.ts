@@ -77,23 +77,23 @@ const initializeSocketServer = (app: Application, socketPort: number): Server =>
         
         socket.on('disconnect', async () => {
             console.log('User disconnected:', socket.id);
-            try {
-                const userIds = await redis.keys('*');
-                console.log('userIds', userIds);
-                for (const id of userIds) {
-                    console.log('id', id, typeof id);
-                    const storedValue = await redis.get(id); // Changed '2' to id
-                    console.log('storedValue', storedValue, typeof storedValue, socket.id, id);
-                    if (storedValue === socket.id) {
-                        console.log(`User with socket ID ${socket.id} unregistered on disconnect.`);
-                        await redis.del(id);
-                    } else {
-                        console.warn(`Key ${id} does not hold a socket ID, skipping deletion.`);
-                    }
-                }
-            } catch (error) {
-                console.error('Error during disconnect handling:', error);
-            }
+            // try {
+            //     const userIds = await redis.keys('*');
+            //     console.log('userIds', userIds);
+            //     for (const id of userIds) {
+            //         console.log('id', id, typeof id);
+            //         const storedValue = await redis.get(id); // Changed '2' to id
+            //         console.log('storedValue', storedValue, typeof storedValue, socket.id, id);
+            //         if (storedValue === socket.id) {
+            //             console.log(`User with socket ID ${socket.id} unregistered on disconnect.`);
+            //             await redis.del(id);
+            //         } else {
+            //             console.warn(`Key ${id} does not hold a socket ID, skipping deletion.`);
+            //         }
+            //     }
+            // } catch (error) {
+            //     console.error('Error during disconnect handling:', error);
+            // }
         });
     });
 
